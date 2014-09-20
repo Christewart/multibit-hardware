@@ -90,15 +90,17 @@ public final class TrezorMessageUtils {
    */
   public static short getHeaderCode(Message message) {
 
-    for (TrezorMessage.MessageType trezorMessageType : TrezorMessage.MessageType.values()) {
+//    for (TrezorMessage trezorMessage : TrezorMessage.values()) {
+//
+//      // Check for same type
+//      if (trezorMessageType.getClass().equals(message.getClass())) {
+//        return (short) trezorMessageType.getNumber();
+//      }
+//    }
+//
+//    throw new IllegalArgumentException("Message class '" + message.getClass().getName() + "' is not known");
 
-      // Check for same type
-      if (trezorMessageType.getClass().equals(message.getClass())) {
-        return (short) trezorMessageType.getNumber();
-      }
-    }
-
-    throw new IllegalArgumentException("Message class '" + message.getClass().getName() + "' is not known");
+    return 0;
 
   }
 

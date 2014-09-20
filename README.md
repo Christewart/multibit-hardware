@@ -100,13 +100,37 @@ The new protobuf files
 #### Read the wiki for detailed instructions
 
 Have a read of [the wiki pages](https://github.com/bitcoin-solutions/mbhd-hardware/wiki/_pages) which gives comprehensive
-instructions for a variety of environments.
+instructions for a variety of environments. 
+
+#### Listing devices on a USB
+
+Different operating systems have different methods of listing the devices attached to the USB. Here is a useful list:
+
+* `lsusb` for Linux
+* `system_profiler SPUSBDataType` for Mac
+* `reg query hklm\system\currentcontrolset\enum\usbstor /s` for Windows (untested so might be a better way)
 
 ### Working with a production Trezor device (recommended)
 
 After [purchasing a production Trezor device](https://www.buytrezor.com/) do the following (assuming a completely new :
 
 Plug in the device to the USB port and wait for initialisation to complete.
+
+Verify that the device is listed on the USB using one of the commands given above. An output similar to the following
+should be seen:
+
+```
+TREZOR:
+Product ID: 0x0001
+Vendor ID: 0x534c
+Version:  1.00
+Serial Number: some random number
+Speed: Up to 12 Mb/sec
+Manufacturer: SatoshiLabs
+Location ID: 0x3a200000 / 2
+Current Available (mA): 500
+Current Required (mA): 100
+```
 
 Attempt to discover the device using the `UsbMonitoringExample` through the command line not the IDE:
 ```
@@ -115,6 +139,8 @@ mvn exec:java -Dexec.mainClass="org.multibit.hd.hardware.examples.trezor.usb.Usb
 ```
 
 This will list available devices on the USB and select a Trezor if present.
+
+A production Trezor uses an [ARM 32F205RE microcontroller](http://www.ic-on-line.cn/view_online.php?id=1820919&file=0411\stm32f205zc_4719102.pdf).
 
 ### Working with a Raspberry Pi emulation device
 
@@ -152,11 +178,7 @@ You should see the Shield OLED show the Trezor logo.
 
 Apply power to the RPi through the USB on the Trezor Shield board. Connect a network cable as normal.
 
-After the blinking lights have settled, test the USB device is connected:
-
-* `lsusb` for Linux
-* `system_profiler SPUSBDataType` for Mac
-* `reg query hklm\system\currentcontrolset\enum\usbstor /s` for Windows (untested so might be a better way)
+After the blinking lights have settled, test the USB device is connected as described in the earlier section.
 
 You should see a CP2110 HID USB-to-UART device.
 
@@ -186,6 +208,66 @@ The following are known issues and their solutions or workarounds.
 The `iconv` library is used to map character sets and is usually provided as part of the operating system. MultiBit Hardware
 will work with version 1.11+. We have seen problems with running the code through an IDE where `iconv` responds with a failure
 code of -1.   
+
+#### On OS X I get the "Access denied (insufficient permissions)" from LibUsb
+
+This is a known issue with devices that announce themselves as HID devices and thus are automatically locked by the operating
+system. Attempting to unlock them from with the user space occupied by `libusb` will fail, even as root.
+
+One workaround is to create a custom `Info.plist` file and place it in `/System/Library/Extensions/Trezor.kext/Contents/`
+
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- This is a dummy driver which binds to Trezor.       -->
+<!-- It contains no actual code; its only purpose is to  -->
+<!-- prevent Apple's USBHID driver from exclusively      -->
+<!-- opening the device.                                 -->
+<plist version="1.0">
+<dict>
+	<key>CFBundleDevelopmentRegion</key>
+	<string>English</string>
+	<key>CFBundleIconFile</key>
+	<string></string>
+	<key>CFBundleIdentifier</key>
+	<string>com.satoshilabs.dummy</string>
+	<key>CFBundleInfoDictionaryVersion</key>
+	<string>6.0</string>
+	<key>CFBundlePackageType</key>
+	<string>KEXT</string>
+	<key>CFBundleSignature</key>
+	<string>????</string>
+	<key>CFBundleVersion</key>
+	<string>1.0.0d1</string>
+	<key>IOKitPersonalities</key>
+	<dict>
+		<!-- The Trezor V1 USB interface -->
+		<key>TrezorV1</key>
+		<dict>
+			<key>CFBundleIdentifier</key>
+			<string>com.apple.kpi.iokit</string>
+			<key>IOClass</key>
+			<string>IOService</string>
+			<key>IOProviderClass</key>
+			<string>IOUSBInterface</string>
+			<key>bConfigurationValue</key>
+			<integer>1</integer>
+			<key>bInterfaceNumber</key>
+			<integer>0</integer>
+			<key>idProduct</key>
+			<integer>1</integer>
+			<key>idVendor</key>
+			<integer>21324</integer>
+		</dict>
+	</dict>
+	<key>OSBundleLibraries</key>
+	<dict>
+		<key>com.apple.iokit.IOUSBFamily</key>
+		<string>1.8</string>
+	</dict>
+</dict>
+</plist>
+```
 
 ### Closing notes
 

@@ -37,8 +37,6 @@ public class UsbMonitoringExample {
    */
   public static void main(String[] args) throws Exception {
 
-    log.info(System.getProperties().toString());
-
     // All the work is done in the class
     UsbMonitoringExample example = new UsbMonitoringExample();
 

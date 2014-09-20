@@ -91,9 +91,9 @@ public class CP211xBridge {
 
     byte[] featureReport;
     if (enabled) {
-      featureReport = new byte[]{0x041, 0x01};
+      featureReport = new byte[]{0x41, 0x01};
     } else {
-      featureReport = new byte[]{0x041, 0x00};
+      featureReport = new byte[]{0x41, 0x00};
 
     }
     int bytesSent = device.sendFeatureReport(featureReport);
