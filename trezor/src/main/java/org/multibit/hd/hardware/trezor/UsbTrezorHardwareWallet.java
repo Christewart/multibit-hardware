@@ -145,6 +145,7 @@ public class UsbTrezorHardwareWallet extends AbstractTrezorHardwareWallet {
       // Verify the active configuration
       if (configuration.isActive()) {
         if (!verifyConfiguration(configuration)) {
+          log.error("Device not verified or its USB interface could not be claimed.");
           HardwareWalletEvents.fireSystemEvent(SystemMessageType.DEVICE_FAILURE);
           return false;
         } else {
@@ -159,6 +160,7 @@ public class UsbTrezorHardwareWallet extends AbstractTrezorHardwareWallet {
 
     // Check for a connected Trezor
     if (epr == null || epw == null) {
+      log.error("Device read/write endpoints have not been set.");
       HardwareWalletEvents.fireSystemEvent(SystemMessageType.DEVICE_FAILURE);
       return false;
     }
@@ -231,15 +233,17 @@ public class UsbTrezorHardwareWallet extends AbstractTrezorHardwareWallet {
       }
       if (writeEndpoint.getUsbEndpointDescriptor().wMaxPacketSize() != 64) {
         log.error("Unexpected packet size for write endpoint on this interface");
+        continue;
       }
 
-      log.info("Verified Trezor device. Attempting to force claim...");
-
-      epw = writeEndpoint;
       epr = readEndpoint;
+      epw = writeEndpoint;
+
+      log.info("Verified Trezor device. EPR: {}, EPW: {}.", epr, epw);
 
       try {
 
+        log.info("Attempting to force claim...");
         iface.claim(new UsbInterfacePolicy() {
           @Override
           public boolean forceClaim(UsbInterface usbInterface) {
@@ -259,6 +263,8 @@ public class UsbTrezorHardwareWallet extends AbstractTrezorHardwareWallet {
       }
 
     }
+
+    log.warn("All USB interfaces explored and none verify as a Trezor device.");
 
     // Must have failed to be here
     return false;
