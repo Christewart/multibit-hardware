@@ -465,13 +465,13 @@ public class UsbTrezorHardwareWallet extends AbstractTrezorHardwareWallet {
         }
 
         type = TrezorMessage.MessageType.valueOf((buffer[3] << 8) + buffer[4]);
-        msgSize = headerBuffer.put(buffer[5]).put(buffer[6]).put(buffer[7]).put(buffer[8]).getInt();
+        msgSize = toInt(headerBuffer.put(buffer[5]).put(buffer[6]).put(buffer[7]).put(buffer[8]).array());
         messageBuffer.put(buffer, 9, buffer.length - 9);
 
         break;
       }
 
-      log.debug("< '{}'", type.name());
+      log.debug("< Type: '{}' Message size: '{}' bytes", type.name(), msgSize);
 
       while (messageBuffer.position() < msgSize) {
 
@@ -567,6 +567,15 @@ public class UsbTrezorHardwareWallet extends AbstractTrezorHardwareWallet {
     }
 
     return msg;
+  }
+
+  public static int toInt(byte[] bytes) {
+    int ret = 0;
+    for (int i = 0; i < 4 && i < bytes.length; i++) {
+      ret <<= 8;
+      ret |= (int) bytes[i] & 0xFF;
+    }
+    return ret;
   }
 
 }
