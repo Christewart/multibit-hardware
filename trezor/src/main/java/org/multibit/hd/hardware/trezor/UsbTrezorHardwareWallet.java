@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.usb.*;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
@@ -167,18 +166,20 @@ public class UsbTrezorHardwareWallet extends AbstractTrezorHardwareWallet {
       return false;
     }
 
-    try {
-      log.debug("Selected: '{}' '{}' '{}'",
-        device.getManufacturerString(),
-        device.getProductString(),
-        device.getSerialNumberString()
-      );
+    log.info("Selected trezor OK");
 
-    } catch (UsbException | UnsupportedEncodingException e) {
-      log.error("Failed to connect device due to problem reading device information", e);
-      HardwareWalletEvents.fireSystemEvent(SystemMessageType.DEVICE_FAILURE);
-      return false;
-    }
+//    try {
+//      log.debug("Selected: '{}' '{}' '{}'",
+//        device.getManufacturerString(),
+//        device.getProductString(),
+//        device.getSerialNumberString()
+//      );
+//
+//    } catch (UsbException | UnsupportedEncodingException e) {
+//      log.error("Failed to connect device due to problem reading device information", e);
+//      HardwareWalletEvents.fireSystemEvent(SystemMessageType.DEVICE_FAILURE);
+//      return false;
+//    }
 
     // Must be OK to be here
     return true;
