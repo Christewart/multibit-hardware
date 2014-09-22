@@ -444,6 +444,7 @@ public class UsbTrezorHardwareWallet extends AbstractTrezorHardwareWallet {
     int msgSize;
     int received;
 
+    log.debug("Opening EPR pipe");
     UsbPipe inPipe = epr.getUsbPipe();
     try {
       inPipe.open();
@@ -451,29 +452,32 @@ public class UsbTrezorHardwareWallet extends AbstractTrezorHardwareWallet {
       for (; ; ) {
         received = inPipe.syncSubmit(buffer);
 
-        log.info("Read chunk: {} bytes", received);
+        log.debug("Read chunk: {} bytes", received);
 
         if (received < 9) {
           continue;
         }
+
 
         if (buffer[0] != (byte) '?' || buffer[1] != (byte) '#' || buffer[2] != (byte) '#') {
           continue;
         }
 
         type = TrezorMessage.MessageType.valueOf((buffer[3] << 8) + buffer[4]);
-        msgSize = (buffer[5] << 8) + (buffer[6] << 8) + (buffer[7] << 8) + buffer[8];
+        msgSize = (buffer[5] << 24) + (buffer[6] << 16) + (buffer[7] << 8) + buffer[8];
         messageBuffer.put(buffer, 9, buffer.length - 9);
 
         break;
       }
+
+      log.debug("< '{}'", type.name());
 
       while (messageBuffer.position() < msgSize) {
 
         received = inPipe.syncSubmit(buffer);
 
         buffer = new byte[64];
-        log.info("Read chunk (cont): {} bytes", received);
+        log.debug("Read chunk (cont): {} bytes", received);
 
         if (buffer[0] != (byte) '?') continue;
         messageBuffer.put(buffer, 1, buffer.length - 1);
@@ -482,8 +486,7 @@ public class UsbTrezorHardwareWallet extends AbstractTrezorHardwareWallet {
       return parseMessageFromBytes(type, Arrays.copyOfRange(messageBuffer.array(), 0, msgSize));
 
     } catch (UsbException e) {
-      // TODO Better error handling here
-      e.printStackTrace();
+      log.debug("Opening EPR pipe");
     } finally {
       try {
         inPipe.close();
