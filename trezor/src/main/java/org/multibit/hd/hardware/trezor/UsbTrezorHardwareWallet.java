@@ -205,14 +205,16 @@ public class UsbTrezorHardwareWallet extends AbstractTrezorHardwareWallet {
       for (UsbEndpoint ep : (List<UsbEndpoint>) iface.getUsbEndpoints()) {
 
         // Is this a read interface
-        if (readEndpoint == null && ep.getDirection() == UsbConst.ENDPOINT_DIRECTION_IN) { // number = 1 ; dir = USB_DIR_IN
+        if (readEndpoint == null && ep.getDirection() == UsbConst.ENDPOINT_DIRECTION_IN && ep.getUsbEndpointDescriptor().bEndpointAddress() == 0x81) {
+          log.debug("Found EPR");
           readEndpoint = ep;
           // Move to the next interface
           continue;
         }
 
         // Is this a write interface
-        if (writeEndpoint == null && ep.getDirection() == UsbConst.ENDPOINT_DIRECTION_OUT) { // number = 1 ; dir = USB_DIR_OUT
+        if (writeEndpoint == null && ep.getDirection() == UsbConst.ENDPOINT_DIRECTION_OUT && ep.getUsbEndpointDescriptor().bEndpointAddress() == 0x01) {
+          log.debug("Found EPW");
           writeEndpoint = ep;
         }
       }
@@ -361,7 +363,7 @@ public class UsbTrezorHardwareWallet extends AbstractTrezorHardwareWallet {
     return "USB Trezor (Serial: " + this.serial + ")";
   }
 
-  private void messageWrite(Message msg) {
+  private Message messageWrite(Message msg) {
 
     int msgSize = msg.getSerializedSize();
     String msgName = msg.getClass().getSimpleName();
@@ -422,6 +424,7 @@ public class UsbTrezorHardwareWallet extends AbstractTrezorHardwareWallet {
       }
     }
 
+    return messageRead();
 
   }
 
