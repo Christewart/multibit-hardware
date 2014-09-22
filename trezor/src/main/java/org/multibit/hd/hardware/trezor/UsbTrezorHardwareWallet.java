@@ -147,6 +147,9 @@ public class UsbTrezorHardwareWallet extends AbstractTrezorHardwareWallet {
         if (!verifyConfiguration(configuration)) {
           HardwareWalletEvents.fireSystemEvent(SystemMessageType.DEVICE_FAILURE);
           return false;
+        } else {
+          // Found a suitable Trezor device
+          break;
         }
       } else {
         log.debug("Configuration is not active");
@@ -166,15 +169,17 @@ public class UsbTrezorHardwareWallet extends AbstractTrezorHardwareWallet {
         device.getProductString(),
         device.getSerialNumberString()
       );
+
     } catch (IOException e) {
       log.error("Failed to connect device due to problem reading device information", e);
       return false;
     } catch (UsbException e) {
       HardwareWalletEvents.fireSystemEvent(SystemMessageType.DEVICE_FAILURE);
+      return false;
     }
 
-    // Must have failed to be here
-    return false;
+    // Must be OK to be here
+    return true;
 
   }
 
@@ -245,18 +250,18 @@ public class UsbTrezorHardwareWallet extends AbstractTrezorHardwareWallet {
         log.info("Claimed the Trezor device");
 
         // Stop looking
-        break;
+        return true;
 
       } catch (UsbException e) {
-        log.warn("Failed to claim device.", e);
+        log.warn("Failed to claim device. No communication will be possible.", e);
         return false;
 
       }
 
     }
 
-    // Must be OK to be here
-    return true;
+    // Must have failed to be here
+    return false;
 
   }
 
