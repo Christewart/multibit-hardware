@@ -206,16 +206,16 @@ public class UsbTrezorHardwareWallet extends AbstractTrezorHardwareWallet {
 
         log.debug("Analysing endpoint. Direction: {}, Address: {}", ep.getDirection(), ep.getUsbEndpointDescriptor().bEndpointAddress());
 
-        // Is this a read interface with address 0x81?
-        if (readEndpoint == null && ep.getDirection() == UsbConst.ENDPOINT_DIRECTION_IN && ep.getUsbEndpointDescriptor().bEndpointAddress() == 0x81) {
+        // Is this an interface with address 0x81?
+        if (readEndpoint == null && ep.getUsbEndpointDescriptor().bEndpointAddress() == 0x81) {
           log.debug("Found EPR");
           readEndpoint = ep;
           // Move to the next interface
           continue;
         }
 
-        // Is this a write interface with address 0x01?
-        if (writeEndpoint == null && ep.getDirection() == UsbConst.ENDPOINT_DIRECTION_OUT && ep.getUsbEndpointDescriptor().bEndpointAddress() == 0x01) {
+        // Is this an interface with address 0x01?
+        if (writeEndpoint == null && ep.getUsbEndpointDescriptor().bEndpointAddress() == 0x01) {
           log.debug("Found EPW");
           writeEndpoint = ep;
         }
