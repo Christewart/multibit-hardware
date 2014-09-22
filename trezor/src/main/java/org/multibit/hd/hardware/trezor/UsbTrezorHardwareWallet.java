@@ -338,7 +338,9 @@ public class UsbTrezorHardwareWallet extends AbstractTrezorHardwareWallet {
     Preconditions.checkNotNull(message, "Message must be present");
     Preconditions.checkNotNull(deviceOptional, "Device is not connected");
 
-    messageWrite(message);
+    Message response = messageWrite(message);
+
+    log.info("Response was: '{}'", response);
 
   }
 
