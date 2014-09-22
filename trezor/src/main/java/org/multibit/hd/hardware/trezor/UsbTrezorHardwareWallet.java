@@ -438,6 +438,7 @@ public class UsbTrezorHardwareWallet extends AbstractTrezorHardwareWallet {
   private Message messageRead() {
 
     ByteBuffer messageBuffer = ByteBuffer.allocate(32768);
+    ByteBuffer headerBuffer = ByteBuffer.allocate(4);
     byte[] buffer = new byte[64];
 
     TrezorMessage.MessageType type;
@@ -464,7 +465,7 @@ public class UsbTrezorHardwareWallet extends AbstractTrezorHardwareWallet {
         }
 
         type = TrezorMessage.MessageType.valueOf((buffer[3] << 8) + buffer[4]);
-        msgSize = (buffer[5] << 24) + (buffer[6] << 16) + (buffer[7] << 8) + buffer[8];
+        msgSize = headerBuffer.put(buffer[5]).put(buffer[6]).put(buffer[7]).put(buffer[8]).getInt();
         messageBuffer.put(buffer, 9, buffer.length - 9);
 
         break;
